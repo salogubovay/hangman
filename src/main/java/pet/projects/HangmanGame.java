@@ -6,32 +6,29 @@ import java.util.*;
 public class HangmanGame {
     private static final String DICTIONARY_FILE = "/dictionary.txt";
     private static final String ALPHABET = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-    private static final Scanner SC = new Scanner(System.in);
-    private static final Random RND = new Random();
+    private static final Scanner SCANNER = new Scanner(System.in);
+    private static final Random RANDOM = new Random();
     private static List<String> stages;
     private static List<String> dictionary;
     private static int maxErrors;
 
-    public static void main( String[] args ) {
+    public static void main(String[] args) {
+        initDictionary();
+        initStages();
         startGameLoop();
-        SC.close();
+        SCANNER.close();
     }
 
     private static void startGameLoop() {
-        boolean finish = false;
-        initDictionary();
-        initStages();
-
-        while(!finish) {
+        while (true) {
             System.out.println("<< Хотите сыграть в игру? (да / нет) >>");
-            String input = SC.nextLine().toLowerCase();
+            String input = SCANNER.nextLine().toLowerCase();
             switch (input) {
                 case "да":
                     startRoundLoop();
                     break;
                 case "нет":
-                    finish = true;
-                    break;
+                    return;
                 default:
                     System.out.println("Некорректный ввод: ожидалось 'да' или 'нет'");
             }
@@ -40,7 +37,7 @@ public class HangmanGame {
 
     private static void startRoundLoop() {
         int errorCount = 0;
-        String word = dictionary.get(RND.nextInt(dictionary.size()));
+        String word = dictionary.get(RANDOM.nextInt(dictionary.size()));
         Set<Character> notGuessedLetters = createLettersSet(word);
         Set<Character> guessedLetters = new HashSet<>();
 
@@ -62,7 +59,7 @@ public class HangmanGame {
     }
 
     private static int readLetter(Set<Character> notGuessedLetters, Set<Character> guessedLetters) {
-        String input = SC.nextLine().toLowerCase();
+        String input = SCANNER.nextLine().toLowerCase();
 
         if (!isValidInput(input)) {
             System.out.println("Некорректный ввод (введите маленькую русскую букву)");
@@ -87,7 +84,7 @@ public class HangmanGame {
 
     private static void printCurrentState(int errorCount) {
         System.out.println("*---------------------*");
-        System.out.format("error count = %d\n",errorCount);
+        System.out.format("error count = %d\n", errorCount);
         System.out.println(stages.get(errorCount));
     }
 
@@ -107,9 +104,10 @@ public class HangmanGame {
 
     private static void initDictionary() {
         dictionary = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(HangmanGame.class.getResourceAsStream(DICTIONARY_FILE))))) {
+        try (InputStream inputStream = Objects.requireNonNull(HangmanGame.class.getResourceAsStream(DICTIONARY_FILE));
+             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String word;
-            while((word = br.readLine())!=null) {
+            while ((word = br.readLine()) != null) {
                 dictionary.add(word);
             }
         } catch (Exception e) {
@@ -120,9 +118,10 @@ public class HangmanGame {
     private static boolean isValidInput(String input) {
         return input.length() == 1 && ALPHABET.indexOf(input.charAt(0)) > -1;
     }
+
     private static String createMaskedWord(String word, Set<Character> notGuessedLetters) {
         StringBuilder output = new StringBuilder();
-        for(char c : word.toCharArray()) {
+        for (char c : word.toCharArray()) {
             if (notGuessedLetters.contains(c)) {
                 output.append("#");
             } else {
@@ -131,18 +130,19 @@ public class HangmanGame {
         }
         return output.toString();
     }
+
     private static void initStages() {
         /*
             Hangman ASCII art from https://gist.github.com/chrishorton/8510732aa9a80a03c829b09f12e20d9c
         */
         String[] stagesArr = new String[]{
-                    "  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
-                    "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
-                    "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
-                    "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========",
-                    "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
-                    "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
-                    "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n========="
+                "  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
+                "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
+                "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
+                "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========",
+                "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
+                "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
+                "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n========="
         };
         stages = new ArrayList<>();
         Collections.addAll(stages, stagesArr);
